@@ -1,0 +1,111 @@
+<?php
+
+namespace Tests\Feature\Api\V1;
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
+
+class {{ model }}CrudTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected $url = '/api/v1/{{ models }}';
+
+    /**
+     * A basic feature test get list.
+     */
+    public function test_get_list(): void
+    {
+        Sanctum::actingAs(\App\Models\User::factory()->create());
+
+        \App\Models\{{ model }}::factory(10)->create();
+
+        $response = $this->get($this->url);
+
+        $response->assertOk();
+        $response->assertJsonCount(10, 'data');
+
+        $this->assertDatabaseCount('{{ models }}', 10);
+    }
+
+    /**
+     * A basic feature test get_by_id.
+     */
+    public function test_get_by_id(): void
+    {
+
+        Sanctum::actingAs(\App\Models\User::factory()->create());
+
+        $object = \App\Models\{{ model }}::factory()->create();
+
+        $response = $this->get("{$this->url}/{$object->id}");
+        $response->assertOk();
+
+        $response->assertJsonFragment([
+
+        ]);
+    }
+
+    /**
+     * A basic feature test create.
+     */
+    public function test_create(): void
+    {
+        Sanctum::actingAs(\App\Models\User::factory()->create());
+
+        $response = $this->post($this->url, [
+
+        ]);
+        $response->assertCreated();
+
+        $response->assertJsonFragment([
+
+        ]);
+
+        $this->assertDatabaseHas('{{ models }}', [
+
+        ]);
+    }
+
+    /**
+     * A basic feature test update.
+     */
+    public function test_update(): void
+    {
+        Sanctum::actingAs(\App\Models\User::factory()->create());
+
+        $object = \App\Models\{{ model }}::factory()->create();
+
+        $response = $this->put("{$this->url}/{$object->id}", [
+
+        ]);
+        $response->assertOk();
+
+        $response->assertJsonFragment([
+
+        ]);
+
+        $this->assertDatabaseHas('{{ models }}', [
+            'id' => $object->id,
+
+        ]);
+
+    }
+
+    /**
+     * A basic feature test delete.
+     */
+    public function test_delete(): void
+    {
+        Sanctum::actingAs(\App\Models\User::factory()->create());
+
+        $object = \App\Models\{{ model }}::factory()->create();
+
+        $response = $this->delete("{$this->url}/{$object->id}");
+        $response->assertNoContent();
+
+        $this->assertDatabaseMissing('{{ models }}', ['id' => $object->id]);
+    }
+}

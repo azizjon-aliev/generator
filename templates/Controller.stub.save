@@ -1,0 +1,114 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Http\Filters\BaseFilter;
+use App\Http\Requests\V1\FilterRequest;
+use App\Http\Requests\V1\{{ model }}\StoreRequest;
+use App\Http\Requests\V1\{{ model }}\UpdateRequest;
+use App\Services\V1\{{ model }}Service;
+use App\Http\Resources\V1\{{ model }}\{{ model }}DetailResource;
+use App\Http\Resources\V1\{{ model }}\{{ model }}CollectResource;
+use Illuminate\Http\JsonResponse;
+
+class {{ model }}Controller extends Controller
+{
+    protected {{ model }}Service $service;
+
+    public function __construct({{ model }}Service $service)
+    {
+        $this->service = $service;
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(FilterRequest $request)
+    {
+        $data = $request->validated();
+        $page = $data['_page'] ?? 1;
+        $limit = $data['_limit'] ?? 100;
+
+        try
+        {
+            $filters = app()->make(BaseFilter::class, [
+                'queryParams' => array_filter($data, function ($x) { return (!is_null($x) || $x === false); })
+            ]);
+
+
+            $response = $this->service->get($filters, $page, $limit);
+
+
+            return {{ model }}CollectResource::collection($response['objects'])->additional([
+                'count' => $response['count'],
+                'total' => $response['total'],
+            ]);
+        }
+        catch (\Illuminate\Database\QueryException|\ErrorException $e)
+        {
+            return response()->json([
+                'message' => 'Bad request',
+            ], 400);
+        }
+        catch (\Exception $e)
+        {
+            return response()->json([
+                'message' => 'Error server',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreRequest $request)
+    {
+        $data = $request->validated();
+
+        $response = $this->service->create($data);
+
+        return new {{ model }}DetailResource($response);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $response = $this->service->getObject(['id' => $id]);
+	
+	if ($response) {
+		
+            return new UserDetailResource($response);
+        }
+
+        return response()->json([
+            'message' => 'Resource not found !',
+        ], 404);
+
+        return new {{ model }}DetailResource($response);
+    }
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateRequest $request, string $id)
+    {
+        $data = $request->validated();
+
+        $response = $this->service->update($data, $id);
+
+        return new {{ model }}DetailResource($response);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id): JsonResponse
+    {
+        $this->service->delete($id);
+
+        return response()->json(null, 204);
+    }
+}
